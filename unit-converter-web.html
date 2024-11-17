@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convertidor de Unidades</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: bold;
+        }
+        select, input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #resultado {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Convertidor de Unidades</h1>
+        
+        <div class="input-group">
+            <label for="tipoConversion">Tipo de Conversión:</label>
+            <select id="tipoConversion" onchange="actualizarUnidades()">
+                <option value="longitud">Longitud</option>
+                <option value="masa">Masa</option>
+                <option value="volumen">Volumen</option>
+                <option value="temperatura">Temperatura</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label for="unidadDesde">Desde:</label>
+            <select id="unidadDesde"></select>
+        </div>
+
+        <div class="input-group">
+            <label for="unidadHasta">Hasta:</label>
+            <select id="unidadHasta"></select>
+        </div>
+
+        <div class="input-group">
+            <label for="valor">Valor:</label>
+            <input type="number" id="valor" step="any" placeholder="Ingrese el valor a convertir">
+        </div>
+
+        <button onclick="convertir()">Convertir</button>
+
+        <div id="resultado"></div>
+    </div>
+
+    <script>
+        const conversiones = {
+            longitud: {
+                metros: {
+                    pies: 3.28084,
+                    pulgadas: 39.3701
+                },
+                kilometros: {
+                    millas: 0.621371
+                }
+            },
+            masa: {
+                kg: {
+                    libras: 2.20462
+                },
+                gramos: {
+                    onzas: 0.035274
+                }
+            },
+            volumen: {
+                litros: {
+                    galones: 0.264172,
+                    cuartos: 1.05669
+                },
+                ml: {
+                    onzas_fluidas: 0.033814
+                }
+            },
+            temperatura: {
+                celsius: {
+                    fahrenheit: valor => (valor * 9/5) + 32
+                }
+            }
+        };
+
+        const unidadesDisponibles = {
+            longitud: ['metros', 'kilometros'],
+            masa: ['kg', 'gramos'],
+            volumen: ['litros', 'ml'],
+            temperatura: ['celsius']
+        };
+
+        function actualizarUnidades() {
+            const tipo = document.getElementById('tipoConversion').value;
+            const desdeSelect = document.getElementById('unidadDesde');
+            const hastaSelect = document.getElementById('unidadHasta');
+            
+            // Limpiar selects
+            desdeSelect.innerHTML = '';
+            hastaSelect.innerHTML = '';
+
+            // Llenar unidades "desde"
+            unidadesDisponibles[tipo].forEach(unidad => {
+                desdeSelect.add(new Option(unidad, unidad));
+            });
+
+            // Llenar unidades "hasta" según la primera unidad "desde"
+            actualizarUnidadesHasta();
+        }
+
+        function actualizarUnidadesHasta() {
+            const tipo = document.getElementById('tipoConversion').value;
+            const unidadDesde = document.getElementById('unidadDesde').value;
+            const hastaSelect = document.getElementById('unidadHasta');
+            
+            hastaSelect.innerHTML = '';
+            
+            // Obtener las unidades disponibles para la conversión
+            const unidadesHasta = Object.keys(conversiones[tipo][unidadDesde] || {});
+            unidadesHasta.forEach(unidad => {
+                hastaSelect.add(new Option(unidad, unidad));
+            });
+        }
+
+        function convertir() {
+            const tipo = document.getElementById('tipoConversion').value;
+            const desde = document.getElementById('unidadDesde').value;
+            const hasta = document.getElementById('unidadHasta').value;
+            const valor = parseFloat(document.getElementById('valor').value);
+
+            if (isNaN(valor)) {
+                document.getElementById('resultado').textContent = 'Por favor, ingrese un valor válido';
+                return;
+            }
+
+            let resultado;
+            if (tipo === 'temperatura') {
+                resultado = conversiones[tipo][desde][hasta](valor);
+            } else {
+                resultado = valor * conversiones[tipo][desde][hasta];
+            }
+
+            document.getElementById('resultado').textContent = 
+                `${valor} ${desde} = ${resultado.toFixed(2)} ${hasta}`;
+        }
+
+        // Inicializar el formulario
+        document.getElementById('unidadDesde').addEventListener('change', actualizarUnidadesHasta);
+        actualizarUnidades();
+    </script>
+</body>
+</html>
